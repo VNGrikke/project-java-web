@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans">
+
+<div th:replace="fragments/header-admin :: header"></div>
+
+<div class="flex h-screen">
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+
+    <div class="ml-64 w-full p-6">
+        <h2 class="text-2xl font-bold mb-4">Student Manager</h2>
+
+        <!-- Search and Sort Section -->
+        <div class="flex justify-between mb-4 items-center">
+            <form th:action="@{/admin/students}" method="get" class="flex gap-2 items-center">
+                <select name="sortField" th:value="${sortField}" class="border px-3 py-2 rounded">
+                    <option value="id" th:selected="${sortField == 'id'}">Sort by ID</option>
+                    <option value="name" th:selected="${sortField == 'name'}">Sort by Name</option>
+                </select>
+                <input type="hidden" name="asc" th:value="${!asc}"/>
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Search by ID, email, or name"
+                       class="border px-3 py-2 rounded w-64"/>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-1">
+                    <span>Search</span>
+                    <span th:text="${asc} ? '↑' : '↓'"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <table class="w-full border-collapse">
+            <thead>
+            <tr class="bg-gray-100">
+                <th class="p-2 border">Student ID</th>
+                <th class="p-2 border">Student Name</th>
+                <th class="p-2 border">Email</th>
+                <th class="p-2 border">Gender</th>
+                <th class="p-2 border">Phone</th>
+                <th class="p-2 border">Status</th>
+                <th class="p-2 border">Action</th>
+            </tr>
+            </thead>
+            <tbody class="text-sm text-gray-700">
+            <tr th:each="student : ${students}" class="border-t hover:bg-gray-50">
+                <td class="p-2 border" th:text="${student.id}">1</td>
+                <td class="p-2 border" th:text="${student.name}">Alice Johnson</td>
+                <td class="p-2 border" th:text="${student.email}">alice@example.com</td>
+                <td class="p-2 border" th:text="${student.sex ? 'Male' : 'Female'}">Male</td>
+                <td class="p-2 border" th:text="${student.phone ?: 'N/A'}">N/A</td>
+                <td class="p-2 border">
+                    <span th:if="${student.status}" class="text-green-600 font-medium">Active</span>
+                    <span th:if="${!student.status}" class="text-red-600 font-medium">Inactive</span>
+                </td>
+                <td class="px-6 py-4">
+                    <form method="post" th:action="@{/admin/students/toggle}">
+                        <input type="hidden" name="id" th:value="${student.id}"/>
+                        <input type="hidden" name="page" th:value="${currentPage}"/>
+                        <input type="hidden" name="keyword" th:value="${keyword}"/>
+                        <input type="hidden" name="sortField" th:value="${sortField}"/>
+                        <input type="hidden" name="asc" th:value="${asc}"/>
+                        <button type="submit"
+                                th:classappend="${student.status} ? 'text-orange-500 border border-orange-500' : 'text-green-600 border border-green-600'"
+                                class="px-3 py-1 rounded text-sm hover:bg-gray-100">
+                            <span th:text="${student.status ? 'Lock' : 'Unlock'}">Lock</span>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="mt-6 flex justify-center items-center space-x-2">
+            <a th:if="${currentPage > 1}"
+               th:href="@{|/admin/students?page=${currentPage - 1}&keyword=${keyword}&sortField=${sortField}&asc=${asc}|}"
+               class="px-3 py-1 border rounded hover:bg-gray-200">←</a>
+
+            <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+               th:text="${i}"
+               th:href="@{|/admin/students?page=${i}&keyword=${keyword}&sortField=${sortField}&asc=${asc}|}"
+               th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'"
+               class="px-3 py-1 border rounded hover:bg-gray-100">
+            </a>
+
+            <a th:if="${currentPage < totalPages}"
+               th:href="@{|/admin/students?page=${currentPage + 1}&keyword=${keyword}&sortField=${sortField}&asc=${asc}|}"
+               class="px-3 py-1 border rounded hover:bg-gray-200">→</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

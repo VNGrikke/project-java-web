@@ -1,10 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>List Course</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<h1>Home student</h1>
+<body class="bg-gray-100 min-h-screen">
+<header th:replace="fragments/header-student :: header"></header>
+
+<div class="container mx-auto px-4 py-6">
+    <div th:if="${isRegistry}" th:replace="student/model-course :: confirm-register"></div>
+
+    <h1 class="text-3xl font-bold text-yellow-500 text-center mb-6">List Course</h1>
+
+    <!-- Thông báo -->
+    <div th:if="${param.success}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        Đăng ký khóa học thành công!
+    </div>
+    <div th:if="${param.error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <span th:if="${param.error == 'already_registered'}">Bạn đã đăng ký khóa học này!</span>
+        <span th:if="${param.error == 'invalid'}">Khóa học không hợp lệ!</span>
+    </div>
+
+    <!-- Search -->
+    <div class="flex justify-end mb-6">
+        <form th:action="@{/student}" method="get" class="flex space-x-2">
+            <input type="text" name="keyword" placeholder="search course by name"
+                   class="border border-gray-300 rounded px-3 py-2 w-64">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+        </form>
+    </div>
+
+    <!-- Course Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div th:each="course : ${courses}" class="bg-white rounded shadow p-4 flex flex-col justify-between">
+            <img th:src="@{${course.image}}" alt="Course Image"
+                 class="w-full h-40 object-cover rounded mb-3">
+            <div>
+                <h2 class="text-sm font-semibold text-red-600" th:text="${course.name}">Course Title</h2>
+                <p class="text-green-600 text-sm font-medium">Let's explore</p>
+                <p class="text-sm text-gray-700 mt-2">
+                    Duration: <span th:text="${course.duration}">120</span> hour<br>
+                    Instructor: <span th:text="${course.instructor}">John Smith</span>
+                </p>
+            </div>
+            <div class="mt-4">
+                <button th:if="${course.registered}" disabled
+                        class="w-full bg-green-600 text-white py-2 rounded cursor-not-allowed">Registered</button>
+                <a th:if="${!course.registered}" th:href="@{'/student/register/' + ${course.id}}"
+                   class="block text-center bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700">Registry</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center mt-8">
+        <nav class="inline-flex space-x-1">
+            <a th:href="@{|/student?page=${currentPage - 1}|}" th:if="${currentPage > 1}"
+               class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">«</a>
+
+            <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+               th:href="@{|/student?page=${i}|}"
+               th:text="${i}"
+               th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'"
+               class="px-3 py-1 border rounded">
+            </a>
+
+            <a th:href="@{|/student?page=${currentPage + 1}|}" th:if="${currentPage < totalPages}"
+               class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">»</a>
+        </nav>
+    </div>
+</div>
+
 </body>
 </html>

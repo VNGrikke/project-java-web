@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Course Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="fragments/header-admin :: header"></div>
+
+<div th:if="${isShowForm}" th:replace="admin/form-course :: form-course"></div>
+
+<div class="flex h-screen">
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+
+    <!-- Main content -->
+    <div class="ml-64 w-full p-6">
+        <h2 class="text-2xl font-bold mb-4">Course Manager</h2>
+
+        <!-- Search & Filters -->
+        <div class="flex justify-end mb-4 space-x-4">
+            <!-- Status Filter -->
+            <form method="get" action="/admin/courses" class="flex items-center">
+                <input type="hidden" name="sortField" th:value="${sortField}">
+                <input type="hidden" name="asc" th:value="${asc}">
+                <input type="hidden" name="keyword" th:value="${keyword}">
+
+                <select name="status" onchange="this.form.submit()" class="p-2 border rounded">
+                    <option value="true" th:selected="${status == true}">Active</option>
+                    <option value="false" th:selected="${status == false}">Inactive</option>
+                </select>
+            </form>
+
+            <!-- Sort Filter -->
+            <form method="get" action="/admin/courses" class="flex items-center">
+                <input type="hidden" name="status" th:value="${status}">
+                <input type="hidden" name="keyword" th:value="${keyword}">
+
+                <select name="sortField" onchange="this.form.submit()" class="p-2 border rounded">
+                    <option value="id" th:selected="${sortField == 'id'}">Sort by ID</option>
+                    <option value="name" th:selected="${sortField == 'name'}">Sort by Name</option>
+                </select>
+                <input type="hidden" name="asc" th:value="${!asc}">
+            </form>
+
+            <!-- Search Form -->
+            <form method="get" action="/admin/courses" class="flex items-center">
+                <input type="hidden" name="status" th:value="${status}">
+                <input type="hidden" name="sortField" th:value="${sortField}">
+                <input type="hidden" name="asc" th:value="${asc}">
+
+                <input type="text" name="keyword" placeholder="Search course by name"
+                       class="p-2 border rounded" th:value="${keyword}">
+                <button type="submit" class="bg-blue-500 text-white p-2 rounded ml-2">Search</button>
+            </form>
+
+            <!-- Add Course Button -->
+            <a href="/admin/courses/form" class="bg-blue-500 text-white px-3 py-2 rounded">Add new course</a>
+        </div>
+
+        <!-- Course Table -->
+        <table class="w-full border-collapse">
+            <thead>
+            <tr class="bg-gray-100">
+                <th class="p-2 border">Course ID</th>
+                <th class="p-2 border">Name</th>
+                <th class="p-2 border">Duration</th>
+                <th class="p-2 border">Instructor</th>
+                <th class="p-2 border">Image</th>
+                <th class="p-2 border">Created</th>
+                <th class="p-2 border">Status</th>
+                <th class="p-2 border">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="course : ${courses}">
+                <td class="p-2 border" th:text="${course.id}"></td>
+                <td class="p-2 border" th:text="${course.name}"></td>
+                <td class="p-2 border" th:text="${course.duration}"></td>
+                <td class="p-2 border" th:text="${course.instructor}"></td>
+                <td class="p-2 border flex items-center justify-center space-x-2">
+                    <img th:if="${course.image}" th:src="${course.image}" alt="Course Image" class="h-10 w-10 object-cover"/>
+                </td>
+                <td class="p-2 border" th:text="${course.getFormat()}"></td>
+                <td class="p-2 border" th:text="${course.status} ? 'Active' : 'Inactive'"></td>
+                <td class="p-2 border space-x-2">
+                    <form th:if="${course.status}"
+                          th:action="@{'/admin/courses/delete/' + ${course.id} + '?' + ${queryParams}}"
+                          method="post" style="display: inline;">
+                        <button type="submit" class="text-red-500">Delete</button>
+                    </form>
+                    <a th:href="@{'/admin/courses/edit/' + ${course.id} + '?' + ${queryParams}}"
+                       class="text-yellow-500">Edit</a>
+                    <form th:if="${!course.status}"
+                          th:action="@{'/admin/courses/restore/' + ${course.id} + '?' + ${queryParams}}"
+                          method="post" style="display: inline;">
+                        <button type="submit" class="text-green-500">Restore</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="flex mt-4 space-x-1">
+            <a th:if="${currentPage > 1}"
+               th:with="prevPage=${currentPage - 1}"
+               th:href="@{'/admin/courses?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + prevPage)}}"
+               class="px-3 py-1 bg-gray-200 rounded">Previous</a>
+            <span th:each="i : ${#numbers.sequence(1, totalPages)}"
+                  th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                  class="px-3 py-1 rounded">
+                <a th:href="@{'/admin/courses?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + i)}}"
+                   th:text="${i}"></a>
+            </span>
+            <a th:if="${currentPage < totalPages}"
+               th:with="nextPage=${currentPage + 1}"
+               th:href="@{'/admin/courses?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + nextPage)}}"
+               class="px-3 py-1 bg-gray-200 rounded">Next</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

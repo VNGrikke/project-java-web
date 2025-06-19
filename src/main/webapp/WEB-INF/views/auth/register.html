@@ -3,77 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <!-- Bootstrap CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-light d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-
-<div class="card shadow p-4" style="width: 500px;">
-    <h2 class="text-center mb-4">Register</h2>
-
-    <div th:if="${error}" class="alert alert-danger text-center" th:text="${error}"></div>
-
-    <form th:action="@{/register}" th:object="${studentdto}" method="post">
-        <div class="mb-3">
-            <label class="form-label">Name:</label>
-            <input type="text" th:field="*{name}" class="form-control" />
-            <div class="text-danger" th:errors="*{name}"></div>
+<script src="https://cdn.tailwindcss.com"></script>
+<body class="bg-gray-900 font-poppins">
+<div class="flex">
+    <div>
+        <img class=" mt-[200px] ml-[50px] rounded-3xl object-contain w-[600px]" src="https://res.cloudinary.com/dhn1ivdgn/image/upload/fl_preserve_transparency/v1749709820/image_25_fkoymg.jpg?_s=public-apps">
+    </div>
+    <div class="text-white transform rotate-[-90deg] ml-[200px] ">
+        <div class="font-bold text-[44px]">
+            Join us today👋
         </div>
+        <p class="text-[18px] text-slate-400">
+            Clarity gives you the blocks and components you need to<br>
+            create a truly professional website.
+        </p>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Username:</label>
-            <input type="text" th:field="*{username}" class="form-control" />
-            <div class="text-danger" th:errors="*{username}"></div>
-        </div>
+    <div class="absolute top-[12vh] right-[5vh] bg-white rounded-[20px] w-[400px] mr-[100px] flex flex-col items-center px-6 py-4">
+        <h2 class="text-[38px] font-bold mb-4 text-center">Sign Up</h2>
 
-        <div class="mb-3">
-            <label class="form-label">Email:</label>
-            <input type="email" th:field="*{email}" class="form-control" />
-            <div class="text-danger" th:errors="*{email}"></div>
-        </div>
+        <form th:action="@{/register}" th:object="${studentdto}" method="post" class="w-full">
+            <input class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" placeholder="Full Name" type="text" th:field="*{name}" />
+            <div th:if="${#fields.hasErrors('name')}" class="text-red-500 text-sm mb-2" th:errors="*{name}" ></div>
 
-        <div class="mb-3">
-            <label class="form-label">Phone:</label>
-            <input type="text" th:field="*{phone}" class="form-control" />
-            <div class="text-danger" th:errors="*{phone}"></div>
-        </div>
+            <input class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" placeholder="Username" type="text" th:field="*{username}" />
+            <div th:if="${#fields.hasErrors('username')}" class="text-red-500 text-sm mb-2" th:errors="*{username}"></div>
 
-        <div class="mb-3">
-            <label class="form-label">Password:</label>
-            <input type="password" th:field="*{password}" class="form-control" />
-            <div class="text-danger" th:errors="*{password}"></div>
-        </div>
+            <input class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" type="email" placeholder="Email" th:field="*{email}" />
+            <div th:if="${#fields.hasErrors('email')}" class="text-red-500 text-sm mb-2" th:errors="*{email}"></div>
 
-        <div class="mb-3">
-            <label class="form-label d-block">Sex:</label>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" th:field="*{sex}" th:value="true" id="male" />
-                <label class="form-check-label" for="male">Male</label>
+            <input class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" type="text" placeholder="Phone" th:field="*{phone}" />
+            <div th:if="${#fields.hasErrors('phone')}" class="text-red-500 text-sm mb-2" th:errors="*{phone}"></div>
+
+            <input class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" type="password" placeholder="Password" th:field="*{password}" />
+            <div th:if="${#fields.hasErrors('password')}" class="text-red-500 text-sm mb-2" th:errors="*{password}"></div>
+
+            <select class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" th:field="*{sex}">
+                <option value="">Select Gender</option>
+                <option value="true">Male</option>
+                <option value="false">Female</option>
+            </select>
+            <div th:if="${#fields.hasErrors('sex')}" class="text-red-500 text-sm mb-2" th:errors="*{sex}"></div>
+
+            <input class="bg-[#D9D9D9] text-[20px] rounded-[18px] w-full px-4 py-2 mb-3" type="date" th:field="*{dob}" />
+            <div th:if="${#fields.hasErrors('dob')}" class="text-red-500 text-sm mb-2" th:errors="*{dob}"></div>
+
+            <p class="text-center text-sm mb-3 text-black">
+                Already have an account? <a class="text-blue-600 underline" th:href="@{/login}">Login here</a>
+            </p>
+
+            <div class="flex justify-center">
+                <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white text-[20px] px-6 py-2 rounded-[12px]">
+                    Register
+                </button>
             </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" th:field="*{sex}" th:value="false" id="female" checked />
-                <label class="form-check-label" for="female">Female</label>
-            </div>
-            <div class="text-danger" th:errors="*{sex}"></div>
-        </div>
+        </form>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Date of Birth:</label>
-            <input type="date" th:field="*{dob}" class="form-control" />
-            <div class="text-danger" th:errors="*{dob}"></div>
-        </div>
-
-        <div class="d-grid">
-            <button type="submit" class="btn btn-success">Register</button>
-        </div>
-    </form>
-
-    <p class="text-center mt-3">
-        Already have an account? <a th:href="@{/login}">Login here</a>
-    </p>
 </div>
-
-<!-- Bootstrap JS (optional) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/brands.min.css" integrity="sha512-58P9Hy7II0YeXLv+iFiLCv1rtLW47xmiRpC1oFafeKNShp8V5bKV/ciVtYqbk2YfxXQMt58DjNfkXFOn62xE+g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="bg-gray-50">
+
+<!-- Header -->
+<header th:replace="fragments/header-admin :: header"></header>
+
+<!-- Layout -->
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+
+    <!-- Main Content -->
+    <div class="ml-64 w-full p-6">
+        <!-- total-->
+        <div class="flex justify-around items-center mb-4 ">
+            <div class="bg-white rounded shadow w-[320px] h-[144px] m-2 p-6">
+                <div class="text-lg font-medium text-gray-600 mb-4">TOTAL STUDENT</div>
+                <div class="flex items-center justify-between">
+                    <span class="text-2xl font-bold" th:text="${totalStudents - 1}"></span>
+                    <span class="text-green-500 text-lg">+36%</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded shadow w-[320px] h-[144px] m-2 p-6">
+                <div class="text-lg font-medium text-gray-600 mb-4">TOTAL COURSE</div>
+                <div class="flex items-center justify-between">
+                    <span class="text-2xl font-bold" th:text="${totalCourses}"></span>
+                    <span class="text-green-500 text-lg">+36%</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded shadow w-[320px] h-[144px] m-2 p-6">
+                <div class="text-lg font-medium text-gray-600 mb-4">TOTAL ENROLLMENT</div>
+                <div class="flex items-center justify-between">
+                    <span class="text-2xl font-bold" th:text="${totalEnrollments}"></span>
+                    <span class="text-green-500 text-lg">+36%</span>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-4">Student statistics by course</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Course Statistics Table -->
+            <div class="col-span-2 bg-white rounded shadow p-4">
+                <div class="max-h-[400px] overflow-y-auto overflow-x-auto">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-blue-100 text-gray-700 uppercase sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-2">Course ID</th>
+                            <th class="px-4 py-2">Image</th>
+                            <th class="px-4 py-2">Course Name</th>
+                            <th class="px-4 py-2">Duration</th>
+                            <th class="px-4 py-2">Total Student</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                        <tr th:each="course : ${courseCountMap}">
+                            <td class="px-4 py-2" th:text="${course.key.id}">C0001</td>
+                            <td class="px-4 py-2">
+                                <img th:src="@{${course.key.image}}" alt="Course Image" class="w-12 h-12 object-cover rounded">
+                            </td>
+                            <td class="px-4 py-2 font-medium" th:text="${course.key.name}">Basic Web Programming</td>
+                            <td class="px-4 py-2" th:text="${course.key.duration}">220</td>
+                            <td class="px-4 py-2" th:text="${course.value}">123</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top 5 Best Seller -->
+            <div class="bg-white rounded shadow p-4">
+                <h3 class="text-lg font-semibold mb-2">Top 5 course best seller</h3>
+                <p class="text-sm text-gray-500 mb-4">Top 5 courses with the most students</p>
+                <ul class="space-y-3">
+                    <li th:each="course : ${topCourses}" class="flex items-center">
+                        <img th:src="@{${course.key.image}}" alt="Course Image" class="w-12 h-12 object-cover rounded mr-3">
+                        <div class="flex-1">
+                            <p class="font-medium" th:text="${course.key.name}">Basic Web Programming</p>
+
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            <span th:text="${course.value}">50</span> Student
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

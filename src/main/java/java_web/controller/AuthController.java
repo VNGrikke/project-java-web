@@ -9,9 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 @Controller
@@ -32,7 +32,7 @@ public class AuthController {
     public String register(@Valid @ModelAttribute("studentdto") StudentDTO dto,
                            BindingResult result, Model model, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            model.addAttribute("error", "Please correct the errors in the form");
+            model.addAttribute("error", "Vui lòng sửa các lỗi trong biểu mẫu");
             return "auth/register";
         }
 
@@ -49,19 +49,25 @@ public class AuthController {
 
         try {
             boolean success = studentService.register(student);
-            redirectAttributes.addFlashAttribute("success", "Registration successful. Please log in.");
+            redirectAttributes.addFlashAttribute("success", "Đăng ký thành công. Vui lòng đăng nhập.");
             return "redirect:/login";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             return "auth/register";
         } catch (Exception e) {
-            model.addAttribute("error", "An error occurred during registration: " + e.getMessage());
+            model.addAttribute("error", "Có lỗi xảy ra trong quá trình đăng ký: " + e.getMessage());
             return "auth/register";
         }
     }
 
     @GetMapping("/login")
-    public String loginPage(Model model) {
+    public String loginPage(Model model, @CookieValue(value = "username", defaultValue = "") String username) {
+        if (!username.isEmpty()) {
+            Student student = studentService.findByUsername(username);
+            if (student != null) {
+                return student.getRole() ? "redirect:/admin/courses" : "redirect:/student";
+            }
+        }
         if (!model.containsAttribute("studentdto")) {
             model.addAttribute("studentdto", new StudentDTO());
         }
@@ -70,37 +76,44 @@ public class AuthController {
 
     @PostMapping("/login")
     public String login(@Valid @ModelAttribute("studentdto") StudentDTO dto,
-                        BindingResult result, Model model,
+                        BindingResult result, Model model, HttpSession session,
                         HttpServletResponse response, RedirectAttributes redirectAttributes) {
         if (result.hasFieldErrors("username") || result.hasFieldErrors("password")) {
-            model.addAttribute("error", "Username and password are required");
+            model.addAttribute("error", "Tên đăng nhập và mật khẩu là bắt buộc");
             return "auth/login";
         }
 
         try {
             Student student = studentService.login(dto.getUsername(), dto.getPassword());
             if (student == null) {
-                model.addAttribute("error", "Invalid username or password");
+                model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng");
                 return "auth/login";
             }
 
+            // Lưu username vào cookie
             Cookie loginCookie = new Cookie("username", student.getUsername());
-            loginCookie.setMaxAge(3 * 24 * 60 * 60); // 3 days
+            loginCookie.setMaxAge(3 * 24 * 60 * 60); // 3 ngày
             loginCookie.setPath("/");
             loginCookie.setHttpOnly(true);
             loginCookie.setSecure(true);
             response.addCookie(loginCookie);
 
-            redirectAttributes.addFlashAttribute("success", "Login successful");
-            return student.getRole() ? "admin/home" : "student/home";
+
+
+            // Lưu Student vào session
+            session.setAttribute("user", student);
+
+            redirectAttributes.addFlashAttribute("success", "Đăng nhập thành công");
+            return student.getRole() ? "redirect:admin/courses" : "redirect:/student";
         } catch (Exception e) {
-            model.addAttribute("error", "An error occurred during login: " + e.getMessage());
+            model.addAttribute("error", "Có lỗi xảy ra trong quá trình đăng nhập: " + e.getMessage());
             return "auth/login";
         }
     }
 
     @GetMapping("/logout")
-    public String logout(HttpServletResponse response, RedirectAttributes redirectAttributes) {
+    public String logout(HttpSession session, HttpServletResponse response, RedirectAttributes redirectAttributes) {
+        // Xóa cookie
         Cookie cookie = new Cookie("username", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
@@ -108,7 +121,10 @@ public class AuthController {
         cookie.setSecure(true);
         response.addCookie(cookie);
 
-        redirectAttributes.addFlashAttribute("success", "Logged out successfully");
+        // Hủy session
+        session.invalidate();
+
+        redirectAttributes.addFlashAttribute("success", "Đăng xuất thành công");
         return "redirect:/login";
     }
 }

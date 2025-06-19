@@ -26,6 +26,7 @@ public class StudentDTO {
     @Size(max = 100, message = "Email must not exceed 100 characters")
     private String email;
 
+    @NotBlank(message = "Phone is required")
     @Pattern(regexp = "^[0-9]{10}$|^$", message = "Phone must be 10 digits or empty")
     @Size(max = 20, message = "Phone must not exceed 20 characters")
     private String phone;
@@ -35,10 +36,10 @@ public class StudentDTO {
     private String password;
 
     @NotNull(message = "Sex is required")
-    private Boolean sex = false; // Default to Female
+    private Boolean sex = false;
 
     @NotNull(message = "Role is required")
-    private Boolean role = false; // Default to Student
+    private Boolean role = false;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate createAt = LocalDate.now();

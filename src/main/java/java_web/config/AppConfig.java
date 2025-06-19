@@ -12,19 +12,12 @@ import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 
-import javax.persistence.EntityManager;
+import java.io.IOException;
 
 @EnableWebMvc
 @ComponentScan(basePackages = {"java_web"})
 @Configuration
 public class AppConfig implements WebMvcConfigurer {
-    @Bean
-    public CommonsMultipartResolver multipartFile() {
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
-        multipartResolver.setMaxUploadSize(-1);
-        multipartResolver.setDefaultEncoding("utf-8");
-        return multipartResolver;
-    }
 
     @Bean
     public SpringResourceTemplateResolver templateResolver() {
@@ -52,24 +45,19 @@ public class AppConfig implements WebMvcConfigurer {
         return viewResolver;
     }
 
-    @Bean
-    public SessionFactory sessionFactory() {
-        return new org.hibernate.cfg.Configuration()
-                .configure("hibernate-config.xml")
-                .buildSessionFactory();
-    }
-
-    @Bean
-    public EntityManager entityManager() {
-        return sessionFactory().createEntityManager();
-    }
-
     @Bean(name = "multipartResolver")
     public CommonsMultipartResolver multipartResolver() {
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setMaxUploadSize(-1);
         multipartResolver.setDefaultEncoding("utf-8");
         return multipartResolver;
+    }
+
+    @Bean
+    public SessionFactory sessionFactory() throws IOException {
+        return new org.hibernate.cfg.Configuration()
+                .configure("hibernate-config.xml")
+                .buildSessionFactory();
     }
 
 

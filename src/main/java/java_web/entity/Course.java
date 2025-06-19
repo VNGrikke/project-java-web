@@ -1,11 +1,14 @@
 package java_web.entity;
 
+import java_web.service.CourseService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Data
@@ -14,8 +17,7 @@ import java.time.LocalDate;
 @Table(name = "course")
 public class Course {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -30,6 +32,22 @@ public class Course {
     private LocalDate createAt = LocalDate.now();
 
     @Column(name = "image", length = 500)
-    private String image;
+    private String image = null;
+
+    @Column(name = "status")
+    private boolean status = true;
+
+    public String getFormat(){
+        return createAt.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    }
+
+    @Transient
+    @ToString.Exclude
+    private boolean registered;
+
+    public boolean getStatus() {
+        return status;
+    }
+
 
 }
