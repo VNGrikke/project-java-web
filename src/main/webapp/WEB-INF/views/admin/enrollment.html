@@ -2,7 +2,7 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Course Manager</title>
+    <title>Enrollment Manager</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -24,13 +24,12 @@
                 <input type="hidden" name="sortField" th:value="${sortField}">
                 <input type="hidden" name="asc" th:value="${asc}">
                 <input type="hidden" name="keyword" th:value="${keyword}">
-
                 <select name="status" onchange="this.form.submit()" class="p-2 border rounded">
-                    <option value="">Filter by status</option>
-                    <option value="WAITING">WAITING</option>
-                    <option value="DENIED">DENIED</option>
-                    <option value="CANCEL">CANCEL</option>
-                    <option value="CONFIRM">CONFIRM</option>
+                    <option value="" th:selected="${status == null}">Filter by status</option>
+                    <option value="WAITING" th:selected="${status == 'WAITING'}">WAITING</option>
+                    <option value="DENIED" th:selected="${status == 'DENIED'}">DENIED</option>
+                    <option value="CANCEL" th:selected="${status == 'CANCEL'}">CANCEL</option>
+                    <option value="CONFIRM" th:selected="${status == 'CONFIRM'}">CONFIRM</option>
                 </select>
             </form>
 
@@ -39,56 +38,47 @@
                 <input type="hidden" name="status" th:value="${status}">
                 <input type="hidden" name="sortField" th:value="${sortField}">
                 <input type="hidden" name="asc" th:value="${asc}">
-
                 <input type="text" name="keyword" placeholder="Search course by name"
                        class="p-2 border rounded" th:value="${keyword}">
                 <button type="submit" class="bg-blue-500 text-white p-2 rounded ml-2">Search</button>
             </form>
-
         </div>
 
-        <!-- Course Table -->
+        <!-- Enrollment Table -->
         <table class="w-full border-collapse">
             <thead>
             <tr class="bg-gray-100">
-                <th class="p-2 border">Course ID</th>
-                <th class="p-2 border">Name</th>
-                <th class="p-2 border">Duration</th>
-                <th class="p-2 border">Instructor</th>
-                <th class="p-2 border">Image</th>
-                <th class="p-2 border">Created</th>
+                <th class="p-2 border">Enrollment ID</th>
+                <th class="p-2 border">Course Name</th>
+                <th class="p-2 border">Student Name</th>
+                <th class="p-2 border">Registered Date</th>
                 <th class="p-2 border">Status</th>
                 <th class="p-2 border">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="course : ${courses}">
-                <td class="p-2 border" th:text="${course.id}"></td>
-                <td class="p-2 border" th:text="${course.name}"></td>
-                <td class="p-2 border" th:text="${course.duration}"></td>
-                <td class="p-2 border" th:text="${course.instructor}"></td>
-                <td class="p-2 border flex items-center justify-center space-x-2">
-                    <img th:if="${course.image}" th:src="${course.image}" alt="Course Image" class="h-10 w-10 object-cover"/>
-                </td>
-                <td class="p-2 border" th:text="${course.getFormat()}"></td>
-                <td class="p-2 border" th:text="${course.status} ? 'Active' : 'Inactive'"></td>
+            <tr th:each="enrollment : ${enrollments}">
+                <td class="p-2 border" th:text="${enrollment.enrollmentId}"></td>
+                <td class="p-2 border" th:text="${enrollment.courseName}"></td>
+                <td class="p-2 border" th:text="${enrollment.studentName}"></td>
+                <td class="p-2 border" th:text="${enrollment.getFormat()}"></td>
+                <td class="p-2 border" th:text="${enrollment.status}"></td>
                 <td class="p-2 border space-x-2">
-                    <!-- Delete -->
-                    <form th:if="${course.status}"
-                          th:action="@{'/admin/courses/delete/' + ${course.id} + '?' + ${queryParams}}"
-                          method="post" style="display: inline;">
-                        <button type="submit" class="text-red-500">Delete</button>
+                    <form th:if="${enrollment.status == T(java_web.entity.EnrollmentStatus).WAITING}" th:action="@{/admin/enrollments/confirm/{id}(id=${enrollment.enrollmentId})}" method="post" class="inline">
+                        <input type="hidden" name="page" th:value="${currentPage}"/>
+                        <input type="hidden" name="keyword" th:value="${keyword}"/>
+                        <input type="hidden" name="sortField" th:value="${sortField}"/>
+                        <input type="hidden" name="asc" th:value="${asc}"/>
+                        <input type="hidden" name="status" th:value="${status}"/>
+                        <button type="submit" class="text-green-500">Confirm</button>
                     </form>
-
-                    <!-- Edit -->
-                    <a th:href="@{'/admin/courses/edit/' + ${course.id} + '?' + ${queryParams}}"
-                       class="text-yellow-500">Edit</a>
-
-                    <!-- Restore -->
-                    <form th:if="${!course.status}"
-                          th:action="@{'/admin/courses/restore/' + ${course.id} + '?' + ${queryParams}}"
-                          method="post" style="display: inline;">
-                        <button type="submit" class="text-green-500">Restore</button>
+                    <form th:if="${enrollment.status == T(java_web.entity.EnrollmentStatus).WAITING}" th:action="@{/admin/enrollments/deny/{id}(id=${enrollment.enrollmentId})}" method="post" class="inline">
+                        <input type="hidden" name="page" th:value="${currentPage}"/>
+                        <input type="hidden" name="keyword" th:value="${keyword}"/>
+                        <input type="hidden" name="sortField" th:value="${sortField}"/>
+                        <input type="hidden" name="asc" th:value="${asc}"/>
+                        <input type="hidden" name="status" th:value="${status}"/>
+                        <button type="submit" class="text-red-500">Deny</button>
                     </form>
                 </td>
             </tr>
@@ -100,21 +90,21 @@
             <!-- Previous -->
             <a th:if="${currentPage > 1}"
                th:with="prevPage=${currentPage - 1}"
-               th:href="@{'/admin/courses?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + prevPage)}}"
+               th:href="@{'/admin/enrollments?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + prevPage)}}"
                class="px-3 py-1 bg-gray-200 rounded">Previous</a>
 
             <!-- Page Numbers -->
             <span th:each="i : ${#numbers.sequence(1, totalPages)}"
                   th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : 'bg-gray-200'"
                   class="px-3 py-1 rounded">
-                <a th:href="@{'/admin/courses?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + i)}}"
+                <a th:href="@{'/admin/enrollments?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + i)}}"
                    th:text="${i}"></a>
             </span>
 
             <!-- Next -->
             <a th:if="${currentPage < totalPages}"
                th:with="nextPage=${currentPage + 1}"
-               th:href="@{'/admin/courses?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + nextPage)}}"
+               th:href="@{'/admin/enrollments?' + ${#strings.replace(queryParams, 'page=' + currentPage, 'page=' + nextPage)}}"
                class="px-3 py-1 bg-gray-200 rounded">Next</a>
         </div>
     </div>

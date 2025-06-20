@@ -1,5 +1,6 @@
 package java_web.service;
 
+import java_web.dto.EnrollmentDTO;
 import java_web.entity.Enrollment;
 import java_web.repository.EnrollmentRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,11 @@ public class EnrollmentServiceImp implements EnrollmentService {
     }
 
     @Override
+    public Enrollment getEnrollmentById(Integer id) {
+        return enrollmentRepo.getEnrollmentById(id);
+    }
+
+    @Override
     public void updateEnrollment(Enrollment e) {
         enrollmentRepo.updateEnrollment(e);
     }
@@ -65,5 +71,15 @@ public class EnrollmentServiceImp implements EnrollmentService {
     @Override
     public int countAll() {
         return enrollmentRepo.countAll();
+    }
+
+    @Override
+    public List<EnrollmentDTO> findEnrollmentDTOsWithDetails(String courseId, String keyword, String status, int page, int size, String sortField, boolean asc) {
+        return enrollmentRepo.findEnrollmentDTOsWithDetails(courseId, keyword, status, page, size, sortField, asc);
+    }
+
+    @Override
+    public int countEnrollmentDTOsWithDetails(String courseId, String keyword, String status) {
+        return enrollmentRepo.countEnrollmentDTOsWithDetails(courseId, keyword, status);
     }
 }

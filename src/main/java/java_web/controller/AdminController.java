@@ -2,8 +2,10 @@ package java_web.controller;
 
 import java_web.config.CloudinaryService;
 import java_web.dto.CourseDTO;
+import java_web.dto.EnrollmentDTO;
 import java_web.entity.Course;
 import java_web.entity.Enrollment;
+import java_web.entity.EnrollmentStatus;
 import java_web.entity.Student;
 import java_web.service.CourseService;
 import java_web.service.EnrollmentService;
@@ -18,7 +20,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -44,13 +45,16 @@ public class AdminController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "id") String sortField,
-            @RequestParam(defaultValue = "true") boolean asc) {
-
+            @RequestParam(defaultValue = "true") boolean asc,
+            @RequestParam(required = false) String status) { // Thêm status vào queryParams
         StringBuilder params = new StringBuilder();
         params.append("page=").append(page);
 
         if (keyword != null && !keyword.isEmpty()) {
             params.append("&keyword=").append(keyword);
+        }
+        if (status != null && !status.isEmpty()) {
+            params.append("&status=").append(status);
         }
 
         return params.append("&sortField=").append(sortField)
@@ -145,8 +149,7 @@ public class AdminController {
         }
         setupModelAttributes(model, page, status, keyword, sortField, asc, courses, totalCourses);
 
-
-        if (isEdit == false) {
+        if (!isEdit) {
             if (courseService.existsByCourseId(courseDTO.getId())) {
                 result.rejectValue("id", "duplicate.course.id",
                         "There is already a course with the id \"" + courseDTO.getId() + "\"");
@@ -353,7 +356,21 @@ public class AdminController {
         if (keyword != null && !keyword.isEmpty()) {
             url.append("&keyword=").append(keyword);
         }
+        // Không thêm status vào URL vì đây là tham số của courses, không phải enrollments
+        return url.append("&sortField=").append(sortField)
+                .append("&asc=").append(asc)
+                .toString();
+    }
 
+    private String buildEnrollmentRedirectUrl(int page, String keyword, String status, String sortField, boolean asc) {
+        StringBuilder url = new StringBuilder("redirect:/admin/enrollments?page=").append(page);
+
+        if (keyword != null && !keyword.isEmpty()) {
+            url.append("&keyword=").append(keyword);
+        }
+        if (status != null && !status.isEmpty()) {
+            url.append("&status=").append(status);
+        }
         return url.append("&sortField=").append(sortField)
                 .append("&asc=").append(asc)
                 .toString();
@@ -423,36 +440,66 @@ public class AdminController {
             return "redirect:/login";
         }
 
-        List<Enrollment> enrollments;
-        int totalEnrollments;
+        List<EnrollmentDTO> enrollments = enrollmentService.findEnrollmentDTOsWithDetails(null, keyword, status, page, PAGE_SIZE, sortField, asc);
+        int totalEnrollments = enrollmentService.countEnrollmentDTOsWithDetails(null, keyword, status);
 
-        // Apply filtering based on status and keyword
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            enrollments = enrollmentService.searchByCourseNameAndStudentId(keyword, null, page, PAGE_SIZE, sortField, asc);
-            totalEnrollments = enrollmentService.countByCourseNameAndStudentId(keyword, null);
-        } else {
-            enrollments = enrollmentService.findByStudentIdWithPaging(null, page, PAGE_SIZE, sortField, asc);
-            totalEnrollments = enrollmentService.countAll();
-        }
-
-        // Filter by status if provided
-        if (status != null && !status.isEmpty()) {
-            enrollments = enrollments.stream()
-                    .filter(e -> e.getStatus().toString().equalsIgnoreCase(status))
-                    .collect(Collectors.toList());
-            totalEnrollments = enrollments.size();
-        }
-
-        // Setup model attributes for the view
         setupEnrollmentModelAttributes(model, page, keyword, sortField, asc, enrollments, totalEnrollments);
         model.addAttribute("status", status);
 
         return "admin/enrollment";
     }
 
+    @PostMapping("/enrollments/confirm/{id}")
+    public String confirmEnrollment(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "true") boolean asc,
+            @RequestParam(required = false) String status,
+            HttpSession session,
+            @CookieValue(value = "username", defaultValue = "") String username) {
+
+        if (!isAdmin(session, username)) {
+            return "redirect:/login";
+        }
+
+        Enrollment enrollment = enrollmentService.getEnrollmentById(id);
+        if (enrollment != null && enrollment.getStatus() == EnrollmentStatus.WAITING) {
+            enrollment.setStatus(EnrollmentStatus.CONFIRM);
+            enrollmentService.updateEnrollment(enrollment);
+        }
+
+        return buildEnrollmentRedirectUrl(page, keyword, status, sortField, asc);
+    }
+
+    @PostMapping("/enrollments/deny/{id}")
+    public String denyEnrollment(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "true") boolean asc,
+            @RequestParam(required = false) String status,
+            HttpSession session,
+            @CookieValue(value = "username", defaultValue = "") String username) {
+
+        if (!isAdmin(session, username)) {
+            return "redirect:/login";
+        }
+
+        Enrollment enrollment = enrollmentService.getEnrollmentById(id);
+        if (enrollment != null && enrollment.getStatus() == EnrollmentStatus.WAITING) {
+            enrollment.setStatus(EnrollmentStatus.DENIED);
+            enrollmentService.updateEnrollment(enrollment);
+        }
+
+        return buildEnrollmentRedirectUrl(page, keyword, status, sortField, asc);
+    }
+
     private void setupEnrollmentModelAttributes(Model model, int page,
                                                 String keyword, String sortField, boolean asc,
-                                                List<Enrollment> enrollments, int totalEnrollments) {
+                                                List<?> enrollments, int totalEnrollments) {
         model.addAttribute("enrollments", enrollments);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", (int) Math.ceil((double) totalEnrollments / PAGE_SIZE));

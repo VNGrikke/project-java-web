@@ -5,6 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Data
 public class StudentDTO {
@@ -43,4 +44,9 @@ public class StudentDTO {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate createAt = LocalDate.now();
+
+
+    public String getFormat(){
+        return createAt.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    }
 }

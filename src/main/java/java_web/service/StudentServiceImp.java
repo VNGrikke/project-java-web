@@ -16,13 +16,13 @@ public class StudentServiceImp implements StudentService {
     @Override
     public boolean register(Student student) {
         if (studentRepo.existsByUsername(student.getUsername())) {
-            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
+            throw new IllegalArgumentException("Username already exists");
         }
-        if (studentRepo.existsByEmail(student.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại");
+        if (studentRepo.existsByEmail(student.getEmail(), student.getId() == null ? 0 : student.getId())) {
+            throw new IllegalArgumentException("Email already exists");
         }
-        if (student.getPhone() != null && !student.getPhone().isEmpty() && studentRepo.existsByPhone(student.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại đã tồn tại");
+        if (student.getPhone() != null && !student.getPhone().isEmpty() && studentRepo.existsByPhone(student.getPhone(), student.getId() == null ? 0 : student.getId())) {
+            throw new IllegalArgumentException("Phone already exists");
         }
         return studentRepo.register(student);
     }
@@ -43,13 +43,13 @@ public class StudentServiceImp implements StudentService {
     }
 
     @Override
-    public boolean existsByEmail(String email) {
-        return studentRepo.existsByEmail(email);
+    public boolean existsByEmail(String email, int studentId) {
+        return studentRepo.existsByEmail(email, studentId);
     }
 
     @Override
-    public boolean existsByPhone(String phone) {
-        return studentRepo.existsByPhone(phone);
+    public boolean existsByPhone(String phone, int studentId) {
+        return studentRepo.existsByPhone(phone, studentId);
     }
 
     @Override
@@ -85,5 +85,15 @@ public class StudentServiceImp implements StudentService {
     @Override
     public void toggleStatus(Integer id) {
         studentRepo.toggleStatus(id);
+    }
+
+    @Override
+    public void updateStudent(Student student) {
+        studentRepo.updateStudent(student);
+    }
+
+    @Override
+    public void updatePassword(Integer id, String newPassword) {
+        studentRepo.updatePassword(id, newPassword);
     }
 }

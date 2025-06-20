@@ -1,7 +1,9 @@
 package java_web.repository;
 
+import java_web.dto.EnrollmentDTO;
 import java_web.entity.Enrollment;
 import java.util.List;
+
 
 public interface EnrollmentRepo {
     Enrollment existsByStudentIdAndCourseId(Integer studentId, String courseId);
@@ -14,5 +16,7 @@ public interface EnrollmentRepo {
     int countByStudentId(Integer studentId);
     int countByCourseNameAndStudentId(String keyword, Integer studentId);
     int countAll();
-
+    List<EnrollmentDTO> findEnrollmentDTOsWithDetails(String courseId, String keyword, String status, int page, int size, String sortField, boolean asc);
+    int countEnrollmentDTOsWithDetails(String courseId, String keyword, String status);
+    Enrollment getEnrollmentById(Integer id);
 }

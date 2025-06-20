@@ -1,5 +1,7 @@
 package java_web.controller;
 
+import java_web.dto.StudentDTO;
+import java_web.dto.PasswordDTO;
 import java_web.entity.Course;
 import java_web.entity.Enrollment;
 import java_web.entity.EnrollmentStatus;
@@ -10,9 +12,11 @@ import java_web.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.util.List;
 
 @Controller
@@ -235,5 +239,195 @@ public class StudentController {
         return "redirect:/student/enrollments?page=" + page +
                 (keyword != null ? "&keyword=" + keyword : "") +
                 "&sortField=" + sortField + "&asc=" + asc + "&success";
+    }
+
+    @GetMapping("/profile")
+    public String profile(Model model, HttpSession session, @CookieValue(value = "username", defaultValue = "") String username) {
+        if (username.isEmpty() || !checkStudentRole(session, username)) {
+            return "redirect:/login";
+        }
+
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+
+        StudentDTO studentDto = new StudentDTO();
+        studentDto.setUsername(student.getUsername());
+        studentDto.setName(student.getName());
+        studentDto.setDob(student.getDob());
+        studentDto.setEmail(student.getEmail());
+        studentDto.setPhone(student.getPhone());
+        studentDto.setPassword(student.getPassword());
+        studentDto.setSex(student.getSex());
+        studentDto.setRole(student.getRole());
+        studentDto.setCreateAt(student.getCreateAt());
+
+        model.addAttribute("studentDto", studentDto);
+        model.addAttribute("passwordDto", new PasswordDTO());
+        model.addAttribute("isShowForm", false);
+
+        return "student/profile";
+    }
+
+    @PostMapping("/profile")
+    public String updateProfile(@Valid @ModelAttribute("studentDto") StudentDTO studentDto,
+                                BindingResult result,
+                                HttpSession session,
+                                @CookieValue(value = "username", defaultValue = "") String username,
+                                Model model) {
+        if (username.isEmpty() || !checkStudentRole(session, username)) {
+            return "redirect:/login";
+        }
+
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+
+        if (result.hasErrors()) {
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", new PasswordDTO());
+            model.addAttribute("isShowForm", false);
+            return "student/profile";
+        }
+
+        // Update Student entity with DTO data
+        student.setName(studentDto.getName());
+        student.setEmail(studentDto.getEmail());
+        student.setPhone(studentDto.getPhone());
+        student.setSex(studentDto.getSex());
+        student.setDob(studentDto.getDob());
+
+        try {
+
+            if (studentService.existsByEmail(studentDto.getEmail(), student.getId())) {
+                model.addAttribute("error", "Email is already taken");
+                model.addAttribute("studentDto", studentDto);
+                model.addAttribute("passwordDto", new PasswordDTO());
+                model.addAttribute("isShowForm", false);
+                return "student/profile";
+            }
+            if (studentService.existsByPhone(studentDto.getPhone(), student.getId())) {
+                model.addAttribute("error", "Phone number is already taken");
+                model.addAttribute("studentDto", studentDto);
+                model.addAttribute("passwordDto", new PasswordDTO());
+                model.addAttribute("isShowForm", false);
+            }
+
+
+            studentService.updateStudent(student);
+            // Update session with the new student data
+            session.setAttribute("user", student);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", new PasswordDTO());
+            model.addAttribute("isShowForm", false);
+            return "student/profile";
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to update profile");
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", new PasswordDTO());
+            model.addAttribute("isShowForm", false);
+            return "student/profile";
+        }
+
+        return "redirect:/student/profile?success";
+    }
+
+    @GetMapping("/profile/change-password")
+    public String showChangePasswordForm(Model model, HttpSession session, @CookieValue(value = "username", defaultValue = "") String username) {
+        if (username.isEmpty() || !checkStudentRole(session, username)) {
+            return "redirect:/login";
+        }
+
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+
+        StudentDTO studentDto = new StudentDTO();
+        studentDto.setUsername(student.getUsername());
+        studentDto.setName(student.getName());
+        studentDto.setDob(student.getDob());
+        studentDto.setEmail(student.getEmail());
+        studentDto.setPhone(student.getPhone());
+        studentDto.setPassword(student.getPassword());
+        studentDto.setSex(student.getSex());
+        studentDto.setRole(student.getRole());
+        studentDto.setCreateAt(student.getCreateAt());
+
+        model.addAttribute("studentDto", studentDto);
+        model.addAttribute("passwordDto", new PasswordDTO());
+        model.addAttribute("isShowForm", true);
+
+        return "student/profile";
+    }
+
+    @PostMapping("/profile/change-password")
+    public String changePassword(@Valid @ModelAttribute("passwordDto") PasswordDTO passwordDto,
+                                 BindingResult result,
+                                 HttpSession session,
+                                 @CookieValue(value = "username", defaultValue = "") String username,
+                                 Model model) {
+        if (username.isEmpty() || !checkStudentRole(session, username)) {
+            return "redirect:/login";
+        }
+
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+
+        StudentDTO studentDto = new StudentDTO();
+        studentDto.setUsername(student.getUsername());
+        studentDto.setName(student.getName());
+        studentDto.setDob(student.getDob());
+        studentDto.setEmail(student.getEmail());
+        studentDto.setPhone(student.getPhone());
+        studentDto.setPassword(student.getPassword());
+        studentDto.setSex(student.getSex());
+        studentDto.setRole(student.getRole());
+        studentDto.setCreateAt(student.getCreateAt());
+
+        if (result.hasErrors()) {
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", passwordDto);
+            model.addAttribute("isShowForm", true);
+            return "student/profile";
+        }
+
+        // Validate old password
+        if (!student.getPassword().equals(passwordDto.getOldPassword())) {
+            model.addAttribute("errorForm", "Old password is incorrect");
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", passwordDto);
+            model.addAttribute("isShowForm", true);
+            return "student/profile";
+        }
+
+        // Validate new password and confirm password match
+        if (!passwordDto.getNewPassword().equals(passwordDto.getConfirmPassword())) {
+            model.addAttribute("errorForm", "New password and confirm password do not match");
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", passwordDto);
+            model.addAttribute("isShowForm", true);
+            return "student/profile";
+        }
+
+        try {
+            studentService.updatePassword(student.getId(), passwordDto.getNewPassword());
+            student.setPassword(passwordDto.getNewPassword());
+            session.setAttribute("user", student);
+        } catch (Exception e) {
+            model.addAttribute("errorForm", "Failed to update password");
+            model.addAttribute("studentDto", studentDto);
+            model.addAttribute("passwordDto", passwordDto);
+            model.addAttribute("isShowForm", true);
+            return "student/profile";
+        }
+
+        return "redirect:/student/profile?success";
     }
 }

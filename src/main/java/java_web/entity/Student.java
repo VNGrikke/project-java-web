@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Data
@@ -46,4 +47,8 @@ public class Student {
 
     @Column(name = "status")
     private boolean status = true;
+
+    public String getFormatdob(){
+        return dob.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+    }
 }
