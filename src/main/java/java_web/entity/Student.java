@@ -33,7 +33,7 @@ public class Student {
     @Column(name = "sex", nullable = false)
     private Boolean sex;
 
-    @Column(name = "phone", unique = true, length = 20)
+    @Column(name = "phone", unique = true, length = 20, nullable = false)
     private String phone;
 
     @Column(name = "password", nullable = false, length = 255)

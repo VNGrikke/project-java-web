@@ -46,7 +46,7 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "true") boolean asc,
-            @RequestParam(required = false) String status) { // Thêm status vào queryParams
+            @RequestParam(required = false) String status) {
         StringBuilder params = new StringBuilder();
         params.append("page=").append(page);
 
@@ -489,7 +489,7 @@ public class AdminController {
         }
 
         Enrollment enrollment = enrollmentService.getEnrollmentById(id);
-        if (enrollment != null && enrollment.getStatus() == EnrollmentStatus.WAITING) {
+        if (enrollment != null && enrollment.getStatus() == EnrollmentStatus.WAITING || enrollment.getStatus() == EnrollmentStatus.CONFIRM) {
             enrollment.setStatus(EnrollmentStatus.DENIED);
             enrollmentService.updateEnrollment(enrollment);
         }

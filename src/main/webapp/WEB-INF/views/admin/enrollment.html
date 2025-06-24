@@ -72,7 +72,7 @@
                         <input type="hidden" name="status" th:value="${status}"/>
                         <button type="submit" class="text-green-500">Confirm</button>
                     </form>
-                    <form th:if="${enrollment.status == T(java_web.entity.EnrollmentStatus).WAITING}" th:action="@{/admin/enrollments/deny/{id}(id=${enrollment.enrollmentId})}" method="post" class="inline">
+                    <form th:if="${enrollment.status == T(java_web.entity.EnrollmentStatus).WAITING || enrollment.status == T(java_web.entity.EnrollmentStatus).CONFIRM}" th:action="@{/admin/enrollments/deny/{id}(id=${enrollment.enrollmentId})}" method="post" class="inline">
                         <input type="hidden" name="page" th:value="${currentPage}"/>
                         <input type="hidden" name="keyword" th:value="${keyword}"/>
                         <input type="hidden" name="sortField" th:value="${sortField}"/>

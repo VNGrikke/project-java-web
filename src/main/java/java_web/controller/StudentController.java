@@ -41,6 +41,7 @@ public class StudentController {
         return student != null && student.getUsername().equals(username) && !student.getRole();
     }
 
+
     // Xem danh sách + tìm kiếm khóa học
     @GetMapping
     public String home(@RequestParam(defaultValue = "1") int page,

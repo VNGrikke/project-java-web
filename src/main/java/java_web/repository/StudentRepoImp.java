@@ -92,13 +92,12 @@ public class StudentRepoImp implements StudentRepo {
                 Query<Long> emailCount = session.createQuery(
                         "SELECT COUNT(s.id) FROM Student s WHERE s.email = :email AND s.id != :id",
                         Long.class
-                );
+                 );
                 emailCount.setParameter("email", email);
                 emailCount.setParameter("id", studentId);
                 if (emailCount.uniqueResult() > 0) {
                     throw new IllegalArgumentException("Email already exists");
                 }
-
             }
             Long count = session.createQuery("SELECT COUNT(s.id) FROM Student s WHERE s.email = :email", Long.class)
                     .setParameter("email", email)
